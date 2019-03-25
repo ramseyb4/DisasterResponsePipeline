@@ -17,6 +17,7 @@ from sklearn.svm import SVC
 
 import nltk
 from nltk import word_tokenize
+from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 
 import pickle
@@ -24,7 +25,7 @@ import pickle
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
-
+   
 def load_data(database_filepath):
    
    """ Cleans and tokenizes text
@@ -37,7 +38,7 @@ def load_data(database_filepath):
     """
    # load data from database
    engine = create_engine('sqlite:///' + database_filepath)
-   df = pd.read_sql_table(database_filepath, engine)
+   df = pd.read_sql_table('DisasterResponses', engine)
    X = df.loc[:, 'message'].values
    Y = df.iloc[:, 4:].values
    category_names = df.columns.values[4:]
@@ -52,20 +53,19 @@ def tokenize(text):
    Returns: List of words representing the tokenized string
    """
    
-    lemmatizer = WordNetLemmatizer()
-    
-    # Lower case
-    text = str.lower(text)
-    
-    # Remove punctuation
-    text = re.sub(r'[^a-zA-z0-9]',' ', text)
-    
-    # Tokenize the text
-    text = word_tokenize(text)
-    
-    # Remove stop words
-    text = [lemmatizer.lemmatize(w).strip() for w in text if w not in stopwords.words('english')]
-    return text
+   lemmatizer = WordNetLemmatizer()
+   # Lower case
+   text = str.lower(text)
+
+   # Remove punctuation
+   text = re.sub(r'[^a-zA-z0-9]',' ', text)
+
+   # Tokenize the text
+   text = word_tokenize(text)
+
+   # Remove stop words
+   text = [lemmatizer.lemmatize(w).strip() for w in text if w not in stopwords.words('english')]
+   return text
 
 
 def build_model():
@@ -79,6 +79,7 @@ def build_model():
    pipeline = Pipeline([('vect', CountVectorizer(tokenizer = tokenize)),
                      ('tfidf', TfidfTransformer()),
                      ('clf', MultiOutputClassifier(estimator = RandomForestClassifier()))])
+   
    
    return pipeline
 
@@ -98,7 +99,11 @@ def evaluate_model(model, X_test, Y_test, category_names):
     """
    # Predict on the test data
    y_pred = model.predict(X_test)
-   
+
+   accuracies = []
+   precisions = []
+   recalls = []
+    
    for index in np.arange(0, y_pred.shape[1]) :
       accuracy = accuracy_score(Y_test[:, index], y_pred[:, index])
       precision = precision_score(Y_test[:, index], y_pred[:, index])
@@ -134,7 +139,7 @@ def save_model(model, model_filepath):
     Returns: Nothing
     """
     
-    pickle.dump(model, open(filename, model_filepath='wb'))
+    pickle.dump(model, open(model_filepath, mode='w+b'))
     
     return
 
