@@ -23,7 +23,8 @@ import pickle
 
 nltk.download('punkt')
 nltk.download('stopwords')
-   
+nltk.download('wordnet')
+
 def load_data(database_filepath):
    
    """ Cleans and tokenizes text
@@ -50,19 +51,21 @@ def tokenize(text):
    
    Returns: List of words representing the tokenized string
    """
-
-   # Lower case the text
-   text = str.lower(text)
-
-   # Remove punctuation
-   text = re.sub(r'[^a-zA-z0-9]',' ', text)
    
-   # Tokenize the text
-   text = word_tokenize(text)
-   
-   # Remove stop words
-   text = [w for w in text if w not in stopwords.words('english')]
-   return text
+    lemmatizer = WordNetLemmatizer()
+    
+    # Lower case
+    text = str.lower(text)
+    
+    # Remove punctuation
+    text = re.sub(r'[^a-zA-z0-9]',' ', text)
+    
+    # Tokenize the text
+    text = word_tokenize(text)
+    
+    # Remove stop words
+    text = [lemmatizer.lemmatize(w).strip() for w in text if w not in stopwords.words('english')]
+    return text
 
 
 def build_model():
@@ -72,23 +75,12 @@ def build_model():
    Returns: Classifier model
    """
    
-   params = {'clf__estimator' : [GridSearchCV(SVC(), param_grid =
-                                              {'kernel' : ['linear', 'rbf'],
-                                               'C' : [.1, 1]}),
-                                 GridSearchCV(LogisticRegression(), param_grid =
-                                              {'penalty' : ['l1', 'l2'],
-                                               'C' : [.1, 1]}),
-                                 GridSearchCV(RandomForestClassifier(), param_grid =
-                                              {'min_samples_split' : [2, 4]})
-                                 ]}
    
    pipeline = Pipeline([('vect', CountVectorizer(tokenizer = tokenize)),
                      ('tfidf', TfidfTransformer()),
                      ('clf', MultiOutputClassifier(estimator = RandomForestClassifier()))])
    
-   model = GridSearchCV(pipeline, param_grid = params)
-   
-   return model
+   return pipeline
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
@@ -142,7 +134,7 @@ def save_model(model, model_filepath):
     Returns: Nothing
     """
     
-    pickle.dump(model, open(filename))
+    pickle.dump(model, open(filename, model_filepath='wb'))
     
     return
 
