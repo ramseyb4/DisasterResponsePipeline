@@ -25,7 +25,10 @@ import pickle
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
-   
+
+stopwords = stopwords.words('english')
+lemmatizer = WordNetLemmatizer()
+
 def load_data(database_filepath):
    
    """ Cleans and tokenizes text
@@ -53,18 +56,14 @@ def tokenize(text):
    Returns: List of words representing the tokenized string
    """
    
-   lemmatizer = WordNetLemmatizer()
-   # Lower case
-   text = str.lower(text)
-
    # Remove punctuation
-   text = re.sub(r'[^a-zA-z0-9]',' ', text)
+   text = re.sub(r'[^a-zA-z0-9]',' ', text.lower())
 
    # Tokenize the text
-   text = word_tokenize(text)
-
+   tokenized = word_tokenize(text)
+   
    # Remove stop words
-   text = [lemmatizer.lemmatize(w).strip() for w in text if w not in stopwords.words('english')]
+   tokenized = [lemmatizer.lemmatize(w).strip() for w in tokenized if w not in stopwords]
    return text
 
 
