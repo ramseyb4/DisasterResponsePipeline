@@ -1,19 +1,17 @@
 import sys
 import re
+
 import numpy as np
 import pandas as pd
+
 from sqlalchemy import create_engine
+
 from sklearn.metrics import classification_report, accuracy_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.pipeline import Pipeline
-import nltk
-from nltk import word_tokenize
-from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
+from sklearn.linear_model import SGDClassifier
 
 import nltk
 from nltk import word_tokenize
@@ -77,7 +75,7 @@ def build_model():
    
    pipeline = Pipeline([('vect', CountVectorizer(tokenizer = tokenize)),
                      ('tfidf', TfidfTransformer()),
-                     ('clf', MultiOutputClassifier(estimator = RandomForestClassifier()))])
+                     ('clf', MultiOutputClassifier(estimator = SGDClassifier(alpha = 0001)))])
    
    
    return pipeline
