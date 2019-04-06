@@ -2,8 +2,43 @@ import sys
 
 import numpy as np
 import pandas as pd
-
+import pickle
+    
 from sqlalchemy import create_engine
+
+from sklearn.feature_extraction.text import CountVectorizer
+import re
+
+import nltk
+from nltk import word_tokenize
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+stopwords = stopwords.words('english')
+lemmatizer = WordNetLemmatizer()
+
+def tokenize(text):
+   
+   """ Cleans and tokenizes text
+   Parameters: 
+   text (string):  The text to tokenize
+   
+   Returns: List of words representing the tokenized string
+   """
+   
+   # Remove punctuation
+   text = re.sub(r'[^a-zA-z0-9]',' ', text.lower())
+
+   # Tokenize the text
+   tokenized = word_tokenize(text)
+   
+   # Remove stop words
+   tokenized = [lemmatizer.lemmatize(w).strip() for w in tokenized if w not in stopwords]
+   return tokenized
 
 def load_data(messages_filepath, categories_filepath):
    
@@ -68,6 +103,30 @@ def clean_data(df):
 
    return df
 
+def get_most_freq_words(df) :
+    """ Finds five most frequent words and counts per genre in the dataframe
+
+    Parameters:df (pandas.DataFrame) :  Dataframe containing messages and genres
+    
+    Returns: Dict where each key is a genre and the value is a list of tuples containing the word and word count
+
+    Reference: https://medium.com/@cristhianboujon/how-to-list-the-most-common-words-from-text-corpus-using-scikit-learn-dad4d0cab41d
+    """
+    
+    vect = CountVectorizer(tokenizer = tokenize)
+    
+    count_dict = dict()
+    
+    for col in df.columns[4:] :
+        
+        col_df = df[df[col] ==1]
+        bow = vect.fit_transform(col_df.message)
+        word_sums = bow.sum(axis = 0)
+        word_counts = [(word, word_sums[0, idx]) for word, idx in vect.vocabulary_.items()]
+        word_counts = sorted(word_counts, key = lambda x: x[1], reverse=True)
+        count_dict[col] = word_counts[:5]
+        
+    return count_dict
 
 def save_data(df, database_filename):
    
@@ -80,10 +139,17 @@ def save_data(df, database_filename):
     
     Returns : Nothing
     """
-    
+
+    # Also save a pickle file dictionary of counts of most frequent words per genre
+    # This is to save time when loading the web page since it is process intensive to count words per genre
+
+    count_dict = get_most_freq_words(df)
+
+    pickle.dump(count_dict, open('data//counts_dict.pkl', mode='w+b'))
+
     engine = create_engine('sqlite:///' + database_filename)
     df.to_sql('DisasterResponses', engine, index=False, if_exists = 'replace')
-
+    
 
 def main():
     if len(sys.argv) == 4:

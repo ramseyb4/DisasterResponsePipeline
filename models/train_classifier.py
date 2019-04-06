@@ -77,7 +77,7 @@ def build_model():
                      ('tfidf', TfidfTransformer()),
                      ('clf', MultiOutputClassifier(estimator = SGDClassifier(alpha = .0001)))])
    
-   
+
    return pipeline
 
 
@@ -135,9 +135,10 @@ def save_model(model, model_filepath):
 
     Returns: Nothing
     """
-    
+
     pickle.dump(model, open(model_filepath, mode='w+b'))
-    
+
+
     return
 
 
