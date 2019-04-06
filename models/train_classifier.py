@@ -62,7 +62,7 @@ def tokenize(text):
    
    # Remove stop words
    tokenized = [lemmatizer.lemmatize(w).strip() for w in tokenized if w not in stopwords]
-   return text
+   return tokenized
 
 
 def build_model():
@@ -75,7 +75,7 @@ def build_model():
    
    pipeline = Pipeline([('vect', CountVectorizer(tokenizer = tokenize)),
                      ('tfidf', TfidfTransformer()),
-                     ('clf', MultiOutputClassifier(estimator = SGDClassifier(alpha = 0001)))])
+                     ('clf', MultiOutputClassifier(estimator = SGDClassifier(alpha = .0001)))])
    
    
    return pipeline
