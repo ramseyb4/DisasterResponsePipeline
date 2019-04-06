@@ -9,7 +9,47 @@ from plotly.graph_objs import Bar
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import SGDClassifier
+
+import nltk
+from nltk import word_tokenize
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+
+import pickle
+
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+import re
+
+stopwords = stopwords.words('english')
+lemmatizer = WordNetLemmatizer()
+
 app = Flask(__name__)
+
+def tokenize(text):
+   
+   """ Cleans and tokenizes text
+   Parameters: 
+   text (string):  The text to tokenize
+   
+   Returns: List of words representing the tokenized string
+   """
+   
+   # Remove punctuation
+   text = re.sub(r'[^a-zA-z0-9]',' ', text.lower())
+
+   # Tokenize the text
+   tokenized = word_tokenize(text)
+   
+   # Remove stop words
+   tokenized = [lemmatizer.lemmatize(w).strip() for w in tokenized if w not in stopwords]
+   return tokenized
 
 def create_graph(genre_name, count_tuples) :
     
