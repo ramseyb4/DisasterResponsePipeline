@@ -72,13 +72,13 @@ def build_model():
    Returns: Classifier model
    """
    
-   
    pipeline = Pipeline([('vect', CountVectorizer(tokenizer = tokenize)),
                      ('tfidf', TfidfTransformer()),
                      ('clf', MultiOutputClassifier(estimator = SGDClassifier(alpha = .0001)))])
    
-
-   return pipeline
+   cv = GridSearchCV(pipeline, n_jobs = -1, param_grid = {'clf__estimator__alpha' : [.00001, .0001, .001]})
+   
+   return cv
 
 
 def evaluate_model(model, X_test, Y_test, category_names):

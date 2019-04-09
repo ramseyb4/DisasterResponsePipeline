@@ -102,12 +102,30 @@ def index():
     
     # extract data needed for visuals
     # TODO: Below is an example - modify to extract data for your own visuals
-    #genre_counts = df.groupby('genre').count()['message']
-    #genre_names = list(genre_counts.index)
+    genre_counts = df.groupby('genre').count()['message']
+    genre_names = list(genre_counts.index)
     
     # create visuals
-    
-    graphs = []
+    graphs = [
+        {
+            'data': [
+                Bar(
+                    x=genre_names,
+                    y=genre_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Message Genres',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Genre"
+                }
+            }
+        }
+    ]
     
     for genre_name, count_tuples in counts_dict.items() :
         graphs.append(create_graph(genre_name, count_tuples))
